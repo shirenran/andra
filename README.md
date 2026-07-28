@@ -127,20 +127,91 @@ uv run python -m andra.cli read-log --host com.mycompany.demo --plugin UnlockPre
 
 Change the return value? Edit `hooks.json` and `deploy` again — **no rebuild of Andra or the host APK**.
 
-### Example 3: APK → find method → plugin (MCP / AI)
+### Example 3: MCP walkthrough — “Forum app” ad gate (AI end-to-end)
 
-When you only have an APK and do not know the class name yet:
+This is the **main** Andra story: tell an AI agent the goal; MCP does
+search → plugin → deploy.
 
-```text
-load_apk(path=./app-debug.apk)
-  → search_strings("isPremium")
-  → find_usage / find_caller
-  → decompile_method(class=..., method=...)
-  → write_plugin(name=UnlockPremium, hooks=[...])
-  → deploy_plugin + verify_plugin
+> Package/class names below are **placeholders** (`com.example.forum`).  
+> This repo does **not** ship ready-made plugins for commercial apps.  
+> Longer Chinese guide: [docs/mcp-usage.zh-CN.md](docs/mcp-usage.zh-CN.md).
+
+#### 3.1 Wire up MCP
+
+```bash
+cd mcp && uv sync
 ```
 
-Same end state as Example 2: a `hooks.json` on device. Full tool map: [docs/workflow.md](docs/workflow.md).
+```toml
+[mcp_servers.andra]
+command = "uv"
+args = ["run", "--directory", "/path/to/andra/mcp", "python", "-m", "andra.server"]
+enabled = true
+startup_timeout_sec = 60
+tool_timeout_sec = 600
+```
+
+Phone: Andra installed; LSPosed scope = **host app only**; `adb` online.
+
+#### 3.2 Prompt the agent
+
+```text
+Use andra MCP to hide feed ads in my forum app.
+APK: /path/to/forum.apk
+Package: com.example.forum
+Pipeline: load_apk → search_strings → find_usage → decompile_method
+        → write_plugin �� deploy_plugin → verify_plugin
+Rules: find_method needs in_class; no live logcat wait; prefer replace on ad gates.
+```
+
+#### 3.3 Tools the agent should call
+
+```text
+① load_apk(path=".../forum.apk")
+② search_strings("广告") / "showFeedAd" / "/c/ad/"
+③ find_usage(string="showFeedAd")
+④ decompile_method(class=..., method=shouldShowAd)
+⑤ write_plugin(name="ForumNoAd", target_package="com.example.forum", hooks=[...])
+⑥ deploy_plugin(...)
+⑦ verify_plugin / read_andra_log
+```
+
+#### 3.4 Resulting hooks (illustrative)
+
+```json
+[
+  {
+    "class_name": "com.example.forum.ad.FeedAdManager",
+    "method_name": "shouldShowAd",
+    "kind": "replace",
+    "return_value": "false",
+    "note": "feed ad gate"
+  },
+  {
+    "class_name": "com.example.forum.ad.SplashAdHelper",
+    "method_name": "needSplash",
+    "kind": "replace",
+    "return_value": "false",
+    "note": "splash ad gate"
+  }
+]
+```
+
+Phone path:
+
+```text
+/sdcard/Android/media/com.example.forum/Andra/plugins/ForumNoAd/
+```
+
+Force-stop host → reopen. If ads remain, `log` on `loadAd` or `find_caller`, edit JSON, deploy again.
+
+#### 3.5 Tool priority (anti-hang)
+
+| Prefer | Avoid |
+|--------|--------|
+| `search_strings` → `find_usage` → `find_caller` | Unconstrained `find_method` |
+| `decompile_method` on ≤2 candidates | Blind full `decompile_all` on mega APKs |
+| `verify_plugin` / `read_andra_log` | Long live `capture_logcat` |
 
 ### vs writing a full Xposed module
 
@@ -278,6 +349,12 @@ andra/
   modules from private experiments
 
 Use on apps you own or are authorized to instrument.
+
+## More docs
+
+- 中文总览 + 某吧向 MCP 示例：[README.zh-CN.md](README.zh-CN.md)
+- MCP step-by-step (ZH)：[docs/mcp-usage.zh-CN.md](docs/mcp-usage.zh-CN.md)
+- Pipeline：[docs/workflow.md](docs/workflow.md)
 
 ## License
 

@@ -2,6 +2,8 @@
 
 Desktop reverse workflow for AI agents (MCP): DEX search + jadx, deliverable is a phone-loadable **Andra** plugin.
 
+**中文逐步教程（含「某吧去广告」示意）：** [../docs/mcp-usage.zh-CN.md](../docs/mcp-usage.zh-CN.md)
+
 Does **not** depend on any third-party mobile reverse app.
 
 **Preferred phone path** (host-readable under scoped storage):

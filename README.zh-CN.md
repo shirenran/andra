@@ -126,21 +126,93 @@ uv run python -m andra.cli read-log --host com.mycompany.demo --plugin UnlockPre
 
 改返回值？只改 `hooks.json` 再 `deploy` 一次，**不用重编 Andra 或宿主 APK**。
 
-### 示例 3：从 APK 定位方法 → 生成插件（MCP / AI）
+### 示例 3：MCP 实战 — 某吧去广告（AI 一条龙）
 
-当你手里有一份 APK，但还不知道类名：
+这是 Andra **最典型**的用法：对 AI 说目标，MCP 自动「搜 APK → 写插件 → 部署」。
 
-```text
-load_apk(path=./app-debug.apk)
-  → search_strings("isPremium") 或 search_strings("付费")
-  → find_usage / find_caller
-  → decompile_method(class=..., method=...)
-  → write_plugin(name=UnlockPremium, hooks=[...])
-  → deploy_plugin + verify_plugin
+> 类名 / 包名为教学占位（`com.example.forum`）。真实某吧以你本机 APK 为准。  
+> 仓库**不附带**商业 App 成品插件，只教工作流。更细的逐步说明见 **[docs/mcp-usage.zh-CN.md](docs/mcp-usage.zh-CN.md)**。
+
+#### 3.1 接入 MCP
+
+```bash
+cd mcp && uv sync
 ```
 
-命令行等价思路：用 jadx / MCP 工具找到 `class_name` + `method_name` 后，仍落到上面的 `hooks.json`。  
-完整工具表见 [docs/workflow.md](docs/workflow.md)。
+客户端配置（路径改成你的仓库绝对路径）：
+
+```toml
+[mcp_servers.andra]
+command = "uv"
+args = ["run", "--directory", "/path/to/andra/mcp", "python", "-m", "andra.server"]
+enabled = true
+startup_timeout_sec = 60
+tool_timeout_sec = 600
+```
+
+手机：Andra 已安装；LSPosed 作用域**只勾某吧**；`adb devices` 在线。
+
+#### 3.2 对 AI 怎么说
+
+```text
+用 andra MCP 给某吧去信息流广告。
+APK：/path/to/forum.apk
+包名：com.example.forum
+流程：load_apk → search_strings → find_usage → decompile_method
+     → write_plugin → deploy_plugin → verify_plugin
+约束：find_method 必须带 in_class；不要空等 logcat；hooks 用 replace 关广告开关。
+```
+
+#### 3.3 AI 实际会调的工具（顺序）
+
+```text
+① load_apk(path=".../forum.apk")
+② search_strings("广告") / search_strings("showFeedAd") / search_strings("/c/ad/")
+③ find_usage(string="showFeedAd")          # 谁引用了这串
+④ decompile_method(class=FeedAdManager, method=shouldShowAd)
+⑤ write_plugin(name="ForumNoAd", target_package="com.example.forum", hooks=[...])
+⑥ deploy_plugin(name="ForumNoAd", target_package="com.example.forum")
+⑦ verify_plugin / read_andra_log           # 看 Hook 就绪、广告是否还在
+```
+
+#### 3.4 最终插件长这样
+
+`hooks.json` 示意（方法名需用你反编译结果替换）：
+
+```json
+[
+  {
+    "class_name": "com.example.forum.ad.FeedAdManager",
+    "method_name": "shouldShowAd",
+    "kind": "replace",
+    "return_value": "false",
+    "note": "信息流广告开关"
+  },
+  {
+    "class_name": "com.example.forum.ad.SplashAdHelper",
+    "method_name": "needSplash",
+    "kind": "replace",
+    "return_value": "false",
+    "note": "开屏广告开关"
+  }
+]
+```
+
+部署路径：
+
+```text
+/sdcard/Android/media/com.example.forum/Andra/plugins/ForumNoAd/
+```
+
+强停某吧 → 再打开 → 滑信息流。不好使就对 `loadAd` 先 `kind: log` 看调用栈，或 `find_caller` 换钩子，**只改 JSON 再 deploy**，不用重编模块。
+
+#### 3.5 工具优先级（防卡死）
+
+| 推荐 | 慎用 |
+|------|------|
+| `search_strings` → `find_usage` → `find_caller` | 无 `in_class` 的 `find_method` 全表扫描 |
+| `decompile_method`（候选很少时） | 大包一上来 `decompile_all` |
+| `verify_plugin` / `read_andra_log` | 长时间 live `capture_logcat` |
 
 ### 和「手写 Xposed 模块」对比
 
@@ -292,8 +364,9 @@ andra/
 ## 更多文档
 
 - 英文总览：[README.md](README.md)
+- **MCP 使用（某吧去广告逐步）**：[docs/mcp-usage.zh-CN.md](docs/mcp-usage.zh-CN.md)
 - 工作流细则：[docs/workflow.md](docs/workflow.md)
-- MCP 说明：[mcp/README.md](mcp/README.md)
+- MCP 包说明：[mcp/README.md](mcp/README.md)
 
 ## 许可证
 

@@ -25,7 +25,7 @@ def build_mcp():
     except ImportError as e:
         raise SystemExit(
             "mcp package not installed. Run:\n"
-            "  cd tools/andra-mcp && uv sync\n"
+            "  cd mcp && uv sync\n"
             f"Original error: {e}"
         ) from e
 
