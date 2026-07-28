@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage="true">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Andra runtime: load desktop-deployed hooks into host apps. Scope = host app only (not system)." />
+        <meta-data android:name="xposedminversion" android:value="82" />
+        <!-- 不要推荐「系统框架」：本模块在宿主 App 进程内读 plugins 并 hook。
+             用户须在 LSPosed 作用域中勾选每个 targetPackage。 -->
+
+        <activity
+            android:name=".StatusActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".PluginDetailActivity"
+            android:exported="false"
+            android:label="插件详情"
+            android:parentActivityName=".StatusActivity"
+            android:screenOrientation="portrait" />
+    </application>
+</manifest>

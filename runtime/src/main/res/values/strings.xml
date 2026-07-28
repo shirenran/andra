@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Andra</string>
+    <string name="app_subtitle">Runtime · LSPosed 插件宿主</string>
+    <string name="section_deploy">最近部署</string>
+    <string name="section_plugins">已发现插件</string>
+    <string name="section_paths">路径</string>
+    <string name="section_guide">使用说明</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_copy_path">复制插件路径</string>
+    <string name="plugin_tap_hint">点击查看</string>
+    <string name="empty_plugins">暂无插件。用 andra MCP：write_plugin → deploy_plugin</string>
+    <string name="empty_deploy">尚无部署记录</string>
+    <string name="badge_on">启用</string>
+    <string name="badge_off">关闭</string>
+    <string name="guide_body">1. LSPosed 启用 Andra\n2. 作用域只勾宿主 App（不要勾系统框架）\n3. 插件目录：/sdcard/Android/media/&lt;宿主&gt;/Andra/plugins/\n4. 强停并打开宿主后生效\n5. 日志：logcat 标签 Andra 或 lspd modules 日志</string>
+</resources>

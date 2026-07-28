@@ -1,0 +1,9 @@
+[
+  {
+    "class_name": "android.app.Activity",
+    "method_name": "onResume",
+    "kind": "log",
+    "return_value": null,
+    "note": "smoke"
+  }
+]

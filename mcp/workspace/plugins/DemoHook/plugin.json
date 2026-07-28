@@ -1,0 +1,10 @@
+{
+  "id": "DemoHook",
+  "name": "DemoHook",
+  "author": "andra-mcp",
+  "version": "1.0.0",
+  "desc": "deploy path smoke",
+  "targetPackage": "com.android.settings",
+  "entry": "main.bsh",
+  "hooksFile": "hooks.json"
+}

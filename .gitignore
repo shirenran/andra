@@ -1,0 +1,46 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+*.apk
+*.ap_
+*.dex
+*.class
+captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+.idea/
+*.hprof
+
+# SDK / tool caches (do not commit)
+.android-sdk/
+.gradle-dist/
+
+# Python / MCP
+mcp/.venv/
+mcp/**/__pycache__/
+mcp/**/*.pyc
+mcp/**/*.egg-info/
+mcp/dist/
+mcp/.pytest_cache/
+mcp/uv.lock
+
+# Workspace runtime state (keep examples only)
+mcp/workspace/apks/
+mcp/workspace/base-*/
+mcp/workspace/state.json
+mcp/workspace/adb_state.json
+mcp/workspace/plugins/*.zip
+mcp/workspace/plugins/*/manifest.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / personal
+*.keystore
+*.jks
+.env
+.env.*

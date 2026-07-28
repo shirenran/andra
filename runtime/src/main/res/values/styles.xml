@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:colorPrimary">@color/andra_accent</item>
+        <item name="android:colorPrimaryDark">@color/andra_bg</item>
+        <item name="android:colorAccent">@color/andra_accent</item>
+        <item name="android:statusBarColor">@color/andra_bg</item>
+        <item name="android:navigationBarColor">@color/andra_bg</item>
+        <item name="android:windowBackground">@color/andra_bg</item>
+        <item name="android:textColorPrimary">@color/andra_text</item>
+        <item name="android:textColorSecondary">@color/andra_text_secondary</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Andra.Card" parent="">
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <style name="Andra.Button.Primary" parent="android:Widget.Material.Button">
+        <item name="android:background">@drawable/bg_btn_primary</item>
+        <item name="android:textColor">@color/andra_bg</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="Andra.Button.Ghost" parent="android:Widget.Material.Button.Borderless">
+        <item name="android:background">@drawable/bg_btn_ghost</item>
+        <item name="android:textColor">@color/andra_accent</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+</resources>

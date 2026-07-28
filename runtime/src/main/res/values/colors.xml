@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="andra_bg">#FF0B1220</color>
+    <color name="andra_surface">#FF121A2B</color>
+    <color name="andra_card">#FF1A2438</color>
+    <color name="andra_card_stroke">#FF2A3650</color>
+    <color name="andra_accent">#FF00C9A7</color>
+    <color name="andra_accent_dim">#3300C9A7</color>
+    <color name="andra_text">#FFE8EEF7</color>
+    <color name="andra_text_secondary">#FF8B9BB4</color>
+    <color name="andra_text_muted">#FF5C6B82</color>
+    <color name="andra_on">#FF00C9A7</color>
+    <color name="andra_off">#FFFF6B7A</color>
+    <color name="andra_warn">#FFFFB020</color>
+    <color name="andra_icon_bg">#FF0B1220</color>
+    <color name="andra_white">#FFFFFFFF</color>
+</resources>

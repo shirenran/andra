@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+*.egg-info/
+*.js.bak
+uv.lock
+
+# Local analysis state — keep DemoHook sources
+workspace/apks/
+workspace/base-*/
+workspace/state.json
+workspace/adb_state.json
+workspace/plugins/*.zip
+workspace/plugins/*/manifest.json
