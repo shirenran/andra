@@ -16,6 +16,141 @@ load_apk → 搜索 / 反编译 → write_plugin → deploy_plugin → verify_pl
 | **MCP / CLI** | `mcp/` | Python MCP 服务 + 命令行（DEX 检索、jadx、部署、验证） |
 | **文档** | `docs/` | 完整流水线与防卡死规则 |
 
+## 它能干什么？
+
+传统做法：每次想试一个 Hook，都要改 Java → 编译 APK → 安装 → 重启作用域。  
+**Andra 的做法：改几个 JSON，推到手机，强停宿主即可生效。**
+
+| 场景 | 你怎么做 | 结果 |
+|------|----------|------|
+| 看某个方法有没有被调用、参数是什么 | `kind: log` | 中文 I/E 日志写到宿主 media 目录 |
+| 临时关掉付费/试用判断（自有 App 调试） | `kind: replace` + `return_value` | 方法直接返回你指定的值 |
+| 方法跑完后再看返回值 | `kind: after` + `log_result` | 不改逻辑，只观察 |
+| 配合 AI 逆向 | MCP：`load_apk` → 搜字符串 → `write_plugin` → `deploy` | 从 APK 定位到可部署插件一条龙 |
+
+适合：自有 / 授权 App 的调试、自动化验证、快速验证 Hook 点。  
+不适合：当成「一键破解某某商业 App」的成品仓库（本仓库也不附带这类插件）。
+
+## 使用示例
+
+### 示例 1：5 分钟跑通 Demo（系统设置）
+
+目标：打开「设置」时，在日志里看到 `Activity.onResume` 被调用。
+
+仓库里已有插件：[`mcp/workspace/plugins/DemoHook/`](mcp/workspace/plugins/DemoHook/)
+
+```json
+// hooks.json（已写好）
+[
+  {
+    "class_name": "android.app.Activity",
+    "method_name": "onResume",
+    "kind": "log",
+    "note": "smoke"
+  }
+]
+```
+
+```bash
+# 0. 手机：安装 Andra APK，LSPosed 启用，作用域勾选「设置」com.android.settings
+# 1. 电脑部署
+cd mcp && uv sync
+uv run python -m andra.cli deploy DemoHook --package com.android.settings
+
+# 2. 强停并打开设置，再读日志
+uv run python -m andra.cli verify DemoHook --package com.android.settings --wait 6
+# 或
+uv run python -m andra.cli read-log --host com.android.settings --plugin DemoHook --level IE
+```
+
+成功时大致会看到类似：
+
+```text
+07-29 12:00:01.234  I  [DemoHook]  Hook 就绪 1/1
+07-29 12:00:02.100  D  [DemoHook]  调用 android.app.Activity.onResume 参数=...
+```
+
+（UI / `read-log` 默认偏 I/E；完整细节在 `andra.log` 文件里。）
+
+### 示例 2：强制某个方法返回 true（自有 App）
+
+假设你自己的应用包名是 `com.mycompany.demo`，有个开关：
+
+```java
+// com.mycompany.demo.feature.FeatureFlags
+public boolean isPremiumUnlocked() { return false; }
+```
+
+本地调试时想永远当已解锁，不必改业务代码重装：
+
+**1. 写插件目录** `mcp/workspace/plugins/UnlockPremium/`
+
+`plugin.json`：
+
+```json
+{
+  "id": "UnlockPremium",
+  "name": "UnlockPremium",
+  "version": "1.0.0",
+  "desc": "本地调试：强制 premium 开关",
+  "targetPackage": "com.mycompany.demo",
+  "hooksFile": "hooks.json"
+}
+```
+
+`hooks.json`：
+
+```json
+[
+  {
+    "class_name": "com.mycompany.demo.feature.FeatureFlags",
+    "method_name": "isPremiumUnlocked",
+    "kind": "replace",
+    "return_value": "true",
+    "note": "local debug only"
+  }
+]
+```
+
+**2. LSPosed 作用域勾选 `com.mycompany.demo`（不要勾系统框架）**
+
+**3. 部署并验证**
+
+```bash
+cd mcp
+uv run python -m andra.cli deploy UnlockPremium --package com.mycompany.demo
+adb shell am force-stop com.mycompany.demo
+# 打开 App，点会走 isPremiumUnlocked 的界面
+uv run python -m andra.cli read-log --host com.mycompany.demo --plugin UnlockPremium --level IE
+```
+
+改返回值？只改 `hooks.json` 再 `deploy` 一次，**不用重编 Andra 或宿主 APK**。
+
+### 示例 3：从 APK 定位方法 → 生成插件（MCP / AI）
+
+当你手里有一份 APK，但还不知道类名：
+
+```text
+load_apk(path=./app-debug.apk)
+  → search_strings("isPremium") 或 search_strings("付费")
+  → find_usage / find_caller
+  → decompile_method(class=..., method=...)
+  → write_plugin(name=UnlockPremium, hooks=[...])
+  → deploy_plugin + verify_plugin
+```
+
+命令行等价思路：用 jadx / MCP 工具找到 `class_name` + `method_name` 后，仍落到上面的 `hooks.json`。  
+完整工具表见 [docs/workflow.md](docs/workflow.md)。
+
+### 和「手写 Xposed 模块」对比
+
+| | 手写 Xposed 模块 | Andra 插件 |
+|--|------------------|------------|
+| 改一处 Hook | 改 Java → 编译 → 安装模块 | 改 `hooks.json` → deploy |
+| 多宿主 | 常在代码里写死包名 | 每个插件一个 `targetPackage` |
+| 和 AI 配合 | 要让模型吐整模块工程 | 模型只需产出 JSON hook 列表 |
+| 调试反馈 | 主要靠 logcat | 宿主 media 下中文 I/E 文件日志 + `verify` |
+
 ## 环境要求
 
 - 已 Root 的 Android 手机，并安装 **LSPosed**（或兼容框架）
