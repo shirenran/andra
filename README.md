@@ -1,5 +1,7 @@
 # Andra
 
+**English** | [中文](README.zh-CN.md)
+
 **Andra** = hot-reloadable **LSPosed hook runtime** + **desktop reverse MCP**.
 
 Write `hooks.json` on the desktop, deploy over adb, inject into a host app — no
@@ -131,7 +133,8 @@ andra/
   mcp/              # Python package andra-mcp
   docs/workflow.md  # Full reverse → deploy pipeline
   LICENSE           # Apache-2.0
-  README.md
+  README.md         # English
+  README.zh-CN.md   # 中文
 ```
 
 ## Scope of this open-source tree
