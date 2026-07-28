@@ -8,7 +8,8 @@ dist/
 uv.lock
 
 # Local analysis state — keep DemoHook sources
-workspace/apks/
+workspace/apks/**
+!workspace/apks/.gitkeep
 workspace/base-*/
 workspace/state.json
 workspace/adb_state.json

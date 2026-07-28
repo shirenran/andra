@@ -28,7 +28,8 @@ mcp/.pytest_cache/
 mcp/uv.lock
 
 # Workspace runtime state (keep examples only)
-mcp/workspace/apks/
+mcp/workspace/apks/**
+!mcp/workspace/apks/.gitkeep
 mcp/workspace/base-*/
 mcp/workspace/state.json
 mcp/workspace/adb_state.json
